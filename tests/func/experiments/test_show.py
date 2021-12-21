@@ -258,6 +258,12 @@ def test_show_filter(
     cap = capsys.readouterr()
     assert "Created" not in cap.out
 
+    capsys.readouterr()
+    assert main(["exp", "show", "--drop=Created|Experiment"]) == 0
+    cap = capsys.readouterr()
+    assert "Created" not in cap.out
+    assert "Experiment" not in cap.out
+
 
 def test_show_multiple_commits(tmp_dir, scm, dvc, exp_stage):
     init_rev = scm.get_rev()
@@ -564,6 +570,7 @@ def test_show_parallel_coordinates(tmp_dir, dvc, scm, mocker):
     )
     assert '"line": {"color": [2, 1, 0]' in html_text
     assert '"label": "metrics.yaml:bar"' not in html_text
+    assert '"label": "Created"' not in html_text
 
     assert (
         main(["exp", "show", "--html", "--sort-by", "metrics.yaml:foo"]) == 0
@@ -588,3 +595,8 @@ def test_show_parallel_coordinates(tmp_dir, dvc, scm, mocker):
     assert main(["exp", "show", "--html"]) == 0
     html_text = (tmp_dir / "dvc_plots" / "index.html").read_text()
     assert '{"label": "foobar", "values": [2.0, null, null]}' in html_text
+
+    assert main(["exp", "show", "--html", "--drop", "foobar"]) == 0
+    html_text = (tmp_dir / "dvc_plots" / "index.html").read_text()
+    assert '"label": "Created"' not in html_text
+    assert '"label": "foobar"' not in html_text
